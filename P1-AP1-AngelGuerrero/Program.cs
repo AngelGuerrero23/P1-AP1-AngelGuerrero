@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using P1_AP1_AngelGuerrero.Components;
 using P1_AP1_AngelGuerrero.DAL;
+using P1_AP1_AngelGuerrero.Services;
 
 namespace P1_AP1_AngelGuerrero;
 
@@ -21,6 +22,8 @@ public class Program
         //Agregamos el contexto al builder con el ConStr
         builder.Services.AddDbContextFactory<Contexto>(o=>o.UseSqlite(ConStr));
 
+        //Inyeccion del service
+        builder.Services.AddScoped<RegistrosService>();
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
