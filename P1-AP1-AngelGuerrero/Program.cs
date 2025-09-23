@@ -24,6 +24,7 @@ public class Program
 
         //Inyeccion del service
         builder.Services.AddScoped<RegistrosService>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
