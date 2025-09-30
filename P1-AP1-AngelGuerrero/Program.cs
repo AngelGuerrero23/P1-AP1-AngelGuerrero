@@ -23,7 +23,7 @@ public class Program
         builder.Services.AddDbContextFactory<Contexto>(o=>o.UseSqlite(ConStr));
 
         //Inyeccion del service
-        builder.Services.AddScoped<RegistrosService>();
+        builder.Services.AddScoped<HuacalesService>();
 
         var app = builder.Build();
 

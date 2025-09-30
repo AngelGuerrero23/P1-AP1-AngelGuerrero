@@ -1,0 +1,139 @@
+﻿@page "/Huacales/Index"
+@using P1_AP1_AngelGuerrero.Services
+
+@rendermode InteractiveServer
+@inject HuacalesService huacalesService
+@inject NavigationManager navigationManager
+
+
+<PageTitle>HuacalesIndex</PageTitle>
+
+<div class="card shadow-lg">
+
+    <div class="card-header">
+        <h3 class="mb-0">Listado de Huacales</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mt-2">
+            <div class="col-3">
+                <label class="col-form-label"><strong>Filtrar por</strong></label>
+            </div>
+            <div class="col-4">
+                <label class="col-form-label"><strong>Búsqueda</strong></label>
+            </div>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-3">
+                <InputSelect class="form-select" @bind-Value="Filtro">
+                    <option value=""selected disabled>Seleccione una opcion</option>
+                    <option value="IdEntrada">IdEntrada</option>
+                    <option value="Fecha">Fecha</option>
+                    <option value="NombreCliente">NombreCliente</option>
+                </InputSelect>
+            </div>
+            <div class="col-4">
+                <div class="input-group">
+                    <input class="form-control"@bind="ValorFiltro" placeholder="Buscar"/>
+                    <button type="button" class="btn btn-outline-dark" onclick="Buscar">
+                        <span class="bi bi-search"></span>Buscar
+                    </button>
+                </div>
+            </div>
+            <div class="col-4">
+                <a href="/Huacales/Create" class="btn btn-primary">
+                    <span class="bi bi-plus-circle"></span>Crear Huacales    
+                </a>
+            </div>
+        </div>
+
+    </div>
+    <div class="card-body"
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>IdEntrada</th>
+                    <th>Fecha</th>
+                    <th>NombresClientes</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var huacales in ListaHuacales)
+                {
+                    <tr>
+                        <td>@huacales.IdEntrada</td>
+                        <td>@huacales.Fecha.ToLocalTime().ToString("yyyy-MM-dd hh:mm")</td>
+                        <td>@huacales.NombreCliente</td>
+                        <td>@huacales.Cantidad</td>
+                        <td>@huacales.Precio</td>
+                        <td>
+                            <button class="bi bi-pencil-square btn-primary me-2"
+                                @onclick="()=>Editar(huacales.IdEntrada)">
+                            </button>
+                            <button class="bi bi-trash btn-danger"
+                            @onclick="()=>Eliminar(huacales.IdEntrada)">
+
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    
+    <div class="card-footer text-end">
+        <span class="me-2">Cantidad: @ListaHuacales.Count()</span>
+        <span class="me-2">Total: @ListaHuacales.Sum(s=>s.Precio)</span>
+    </div>
+</div>
+
+  
+
+
+
+@code {
+    [Parameter]
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+    public EntradasHuacales huacales{ get; set; }
+    public int Id{ get; set; }
+
+    public List<EntradasHuacales> ListaHuacales { get; set; } = new List<EntradasHuacales>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaHuacales = await huacalesService.Listar(h=>h.IdEntrada>0);
+    }
+
+    public async Task Buscar()
+    {
+
+        if(ValorFiltro !=null)
+        {
+            if (Filtro == "IdEntrada")
+                ListaHuacales = await huacalesService.Listar(h => h.IdEntrada.ToString().ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == "Fecha")
+                ListaHuacales = await huacalesService.Listar(h => h.Fecha.ToString().ToLower().Contains(ValorFiltro.ToLower()));
+            else if (Filtro == "NombreCliente")
+                ListaHuacales = await huacalesService.Listar(h => h.NombreCliente.ToLower().Contains(ValorFiltro.ToLower()));
+            else
+                ListaHuacales = await huacalesService.Listar(h => h.IdEntrada > 0);
+        }
+    }
+    private void Editar(int Id)
+    {
+        navigationManager.NavigateTo($"/Huacales/Edit/{Id}");
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var eliminado = await huacalesService.Eliminar(id);
+        if (eliminado)
+            ListaHuacales = await huacalesService.Listar(p => p.IdEntrada > 0);
+    }
+
+}
+}
+

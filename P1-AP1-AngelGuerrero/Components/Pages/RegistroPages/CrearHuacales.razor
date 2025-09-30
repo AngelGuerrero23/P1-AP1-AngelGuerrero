@@ -1,0 +1,80 @@
+﻿@page "/Huacales/Create"
+
+@using P1_AP1_AngelGuerrero.Services
+
+@rendermode InteractiveServer
+@inject HuacalesService huacalesService
+@inject NavigationManager navigationManager
+
+<PageTitle>Crear Huacales</PageTitle>
+
+<EditForm Model="Huacales" OnValidSubmit="Guardar" FormName="FormHuacales">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card shadow-lg">
+        <div class="card-header">
+            <label class="form-label"><strong>Crear Huacales</strong></label>
+        </div>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="from-label"><strong>Nombre del Cliente</strong></label>
+                <InputText class="form-control"@bind-Value="Huacales.NombreCliente"></InputText>
+                <ValidationMessage For="(()=>Huacales.NombreCliente)"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Fecha</strong></label>
+                <InputDate class="form-control"@bind-Value="Huacales.Fecha"></InputDate>
+                <ValidationMessage For="(() => Huacales.Fecha)" />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label"><strong>Cantidad</strong></label>
+                <InputNumber class="form-control" @bind-Value="Huacales.Cantidad"></InputNumber>
+                <ValidationMessage For="(() => Huacales.Cantidad)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Precio</strong></label>
+                <InputNumber class="form-control" @bind-Value="Huacales.Precio"></InputNumber>
+                <ValidationMessage For="(() => Huacales.Precio)" />
+            </div>
+        </div>
+
+            <div class="card-footer text-center mt-2">
+                <a href="/Huacales/Index" class="btn btn-secondary">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="bi bi-floppy"></span> Guardar
+                </button>
+        </div>
+    </div>
+    </div>
+</EditForm>
+
+
+
+
+@code {
+    [Parameter]
+    public EntradasHuacales Huacales { get; set; } = new EntradasHuacales();
+    public string Mensaje{ get; set; }
+
+
+    public async Task Guardar()
+    {
+        var creado = await huacalesService.Guardar(Huacales);
+
+        if(creado)
+        {
+            navigationManager.NavigateTo("/Huacales/Index");
+            Mensaje = "Creado Exitosamente";
+        }
+        else
+        {
+            Mensaje = "No se pudo crear los huacales";
+        }
+    }
+}
