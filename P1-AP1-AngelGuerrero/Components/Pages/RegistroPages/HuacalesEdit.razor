@@ -40,6 +40,11 @@
                     <InputNumber class="form-control" @bind-Value="Huacales.Precio"></InputNumber>
                     <ValidationMessage For="(() => Huacales.Precio)" />
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Importe</strong></label>
+                    <input class="form-control" value="@(Huacales.Cantidad* Huacales.Precio)" readonly />
+                </div>
             </div>
 
             <div class="card-footer text-center mt-2">
@@ -49,10 +54,13 @@
                 <button type="submit" class="btn btn-primary">
                     <span class="bi bi-floppy"></span> Modificar
                 </button>
+
             </div>
         </div>
     </div>
+
 </EditForm>
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -67,7 +75,7 @@
 
     private async Task Modificar()
     {
-        var guardado = await huacalesService.Modificar(Huacales);
+        var guardado = await huacalesService.Guardar(Huacales);
 
         if (guardado)
         {
@@ -78,4 +86,5 @@
             Mensaje = "No se pudo modificar los huacales";
         }
     }
+
 }

@@ -17,16 +17,17 @@
         </div>
 
         <div class="card-body">
-            <div class="mb-3">
-                <label class="from-label"><strong>Nombre del Cliente</strong></label>
-                <InputText class="form-control"@bind-Value="Huacales.NombreCliente"></InputText>
-                <ValidationMessage For="(()=>Huacales.NombreCliente)"/>
-            </div>
 
             <div class="mb-3">
                 <label class="form-label"><strong>Fecha</strong></label>
-                <InputDate class="form-control"@bind-Value="Huacales.Fecha"></InputDate>
+                <InputDate class="form-control" @bind-Value="Huacales.Fecha"></InputDate>
                 <ValidationMessage For="(() => Huacales.Fecha)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="from-label"><strong>Nombre del Cliente</strong></label>
+                <InputText class="form-control"@bind-Value="Huacales.NombreCliente" ></InputText>
+                <ValidationMessage For="(()=>Huacales.NombreCliente)"/>
             </div>
             
             <div class="mb-3">
@@ -40,7 +41,19 @@
                 <InputNumber class="form-control" @bind-Value="Huacales.Precio"></InputNumber>
                 <ValidationMessage For="(() => Huacales.Precio)" />
             </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Importe</strong></label>
+                    <input class="form-control" value="@(Huacales.Cantidad* Huacales.Precio)"readonly />
+                </div>
         </div>
+
+            @if(ShowAlert)
+            {
+                <div class="alert @AlertType mt-3" role="alert">
+                    @Mensaje
+                </div>
+            }
 
             <div class="card-footer text-center mt-2">
                 <a href="/Huacales/Index" class="btn btn-secondary">
@@ -58,23 +71,55 @@
 
 
 @code {
-    [Parameter]
     public EntradasHuacales Huacales { get; set; } = new EntradasHuacales();
-    public string Mensaje{ get; set; }
+    public string Mensaje { get; set; } = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        Huacales.Fecha = DateTime.Now;
+    }
 
     public async Task Guardar()
     {
+
+
+        if(Huacales.Cantidad <=0 || Huacales.Precio <=0)
+        {
+            Mensaje = "Cantidad o Precio no puede ser 0";
+            AlertType = "alert-warning";
+            ShowAlert = true;
+            return;
+        }
         var creado = await huacalesService.Guardar(Huacales);
 
         if(creado)
         {
-            navigationManager.NavigateTo("/Huacales/Index");
             Mensaje = "Creado Exitosamente";
+            AlertType ="alert-success";
+            ShowAlert = true;
+            await Task.Delay(2000);
+
+            navigationManager.NavigateTo("/Huacales/Index");
+
         }
         else
         {
+            ShowAlert = false;
+            AlertType = "alert-warning";
             Mensaje = "No se pudo crear los huacales";
         }
+    }
+
+    private bool ShowAlert = false;
+    private string AlertType = "sucess";
+
+    private void TriggerAlert()
+    {
+        AlertType = "success";
+        ShowAlert = true;
+    }
+    private void DismissAlert()
+    {
+        ShowAlert = false;
     }
 }
