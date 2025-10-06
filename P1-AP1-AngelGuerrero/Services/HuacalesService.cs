@@ -12,13 +12,13 @@ public class HuacalesService(IDbContextFactory<Contexto>DbFactory)
     {
         if (!await Existe(huacales.IdEntrada))
         {
-            await Insertar(huacales);
+            return await Insertar(huacales);
         }
         else
         {
-            await Modificar(huacales);
+            return await Modificar(huacales);
         }
-        return false;
+       
     }
 
     public async Task<bool>Modificar(EntradasHuacales huacales)
