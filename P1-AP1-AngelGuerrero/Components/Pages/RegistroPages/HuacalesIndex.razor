@@ -1,6 +1,5 @@
 ﻿@page "/Huacales/Index"
 @using P1_AP1_AngelGuerrero.Services
-@using P1A_P1_AngelGuerrero.Models
 @rendermode InteractiveServer
 @inject HuacalesService huacalesService
 @inject NavigationManager navigationManager
@@ -76,7 +75,6 @@
                     <th>Fecha</th>
                     <th>NombresClientes</th>
                     <th>Cantidad</th>
-                    <th>Precio</th>
                     <th>Importe</th>
                     <th>Acciones</th>
                 </tr>
@@ -90,14 +88,9 @@
                         <td>@huacales.NombreCliente</td>
                         <td>@huacales.Cantidad</td>
                         <td>RD$@Math.Round(huacales.Precio,2)</td>
-                        <td>RD$@Math.Round(huacales.Precio*huacales.Cantidad,2)</td>
                         <td>
                             <button class="bi bi-pencil-square btn-primary me-2"
                                 @onclick="()=>Editar(huacales.IdEntrada)">
-                            </button>
-                            <button class="bi bi-trash btn-danger"
-                            @onclick="()=>Eliminar(huacales.IdEntrada)">
-
                             </button>
                         </td>
                     </tr>
@@ -108,36 +101,10 @@
 
     <div class="card-footer text-end">
         <span class="me-2">Cantidad: @ListaHuacales.Sum(s=>s.Cantidad)</span>
-        <span class="me-2">Importe: @Math.Round(ListaHuacales.Sum(s=>s.Precio*s.Cantidad),2)</span>
+        <span class="me-2">Importe: @Math.Round(ListaHuacales.Sum(s=>s.Precio),2)</span>
     </div>
 </div>
 
-@if (MostrarModal)
-{
-    <div class="modal show" tabindex="-1" style="display: block;" aria-labelledby="confirmDeleteModalLabel" aria-hidden="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminacion</h5>
-                    <button type="button" class="btn-close" aria-label="Close" @onclick="CerrarModalEliminar"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Estas seguro de que quieres eliminar la entrada huacal?</p>
-                    <p><strong>EntradaId:</strong> @huacales.IdEntrada</p>
-                    <p><strong>Nombre:</strong> @huacales.NombreCliente</p>
-                    <p><strong>Cantidad:</strong> @huacales.Cantidad</p>
-                    <p><strong>Precio:</strong> @huacales.Precio</p>
-                    <p><strong>Fecha:</strong> @huacales.Fecha.ToString("dd/MM/yyyy")</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalEliminar">Volver</button>
-                    <button type="button" class="btn btn-danger" @onclick="ConfirmarEliminar">Eliminar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
 
 @code {
     [Parameter]
@@ -190,29 +157,5 @@
         navigationManager.NavigateTo($"/Huacales/Edit/{Id}");
     }
 
-    private async Task Eliminar(int id)
-    {
-        huacales = await huacalesService.Buscar(id); 
-        if (huacales != null)
-        {
-            IdHuacalAEliminar = id; 
-            MostrarModal = true; 
-        }
-    }
-    private async Task ConfirmarEliminar()
-    {
-        CerrarModalEliminar();
-
-        var eliminado = await huacalesService.Eliminar(IdHuacalAEliminar);
-        if (eliminado)
-        {
-            ListaHuacales = await huacalesService.Listar(p => p.IdEntrada > 0);
-        }
-    }
-
-    public void CerrarModalEliminar()
-    {
-        MostrarModal = false;
-        huacales = new EntradasHuacales();
-    }
+    
 }
