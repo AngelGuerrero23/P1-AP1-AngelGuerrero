@@ -1,6 +1,5 @@
 ﻿@page "/Huacales/Index"
 @using P1_AP1_AngelGuerrero.Services
-
 @rendermode InteractiveServer
 @inject HuacalesService huacalesService
 @inject NavigationManager navigationManager
@@ -15,6 +14,28 @@
     </div>
     <div class="card-body">
         <div class="row mt-2">
+            <div class="col-2">
+                <label class="col-form-label"><strong>Desde:</strong></label>
+            </div>
+            <div class="col-2">
+                <label class="col-form-label"><strong>Hasta:</strong></label>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-2 mb-3">
+                <InputDate class="form-control"@bind-Value="FechaDesde"></InputDate>
+            </div>
+            <div class="col-2 mb-3">
+                <InputDate class="form-control" @bind-Value="FechaHasta"></InputDate>
+            </div>
+            <div class="col-2 mb-3">
+                <button type="button" class="btn btn-outline-dark" @onclick="BuscarPorFecha">
+                    <span class="bi bi-search"></span>Buscar
+                </button>
+            </div>
+        </div>
+        <div class="row mt-2">
             <div class="col-3">
                 <label class="col-form-label"><strong>Filtrar por</strong></label>
             </div>
@@ -27,14 +48,13 @@
                 <InputSelect class="form-select" @bind-Value="Filtro">
                     <option value=""selected disabled>Seleccione una opcion</option>
                     <option value="IdEntrada">IdEntrada</option>
-                    <option value="Fecha">Fecha</option>
                     <option value="NombreCliente">NombreCliente</option>
                 </InputSelect>
             </div>
             <div class="col-4">
                 <div class="input-group">
                     <input class="form-control"@bind="ValorFiltro" placeholder="Buscar"/>
-                    <button type="button" class="btn btn-outline-dark" onclick="Buscar">
+                    <button type="button" class="btn btn-outline-dark" @onclick="Buscar">
                         <span class="bi bi-search"></span>Buscar
                     </button>
                 </div>
@@ -45,8 +65,8 @@
                 </a>
             </div>
         </div>
-
     </div>
+
     <div class="card-body"
         <table class="table table-hover">
             <thead class="table-dark">
@@ -55,7 +75,7 @@
                     <th>Fecha</th>
                     <th>NombresClientes</th>
                     <th>Cantidad</th>
-                    <th>Precio</th>
+                    <th>Importe</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -64,17 +84,13 @@
                 {
                     <tr>
                         <td>@huacales.IdEntrada</td>
-                        <td>@huacales.Fecha.ToLocalTime().ToString("yyyy-MM-dd hh:mm")</td>
+                        <td>@huacales.Fecha.ToLocalTime().ToString("yyyy-MM-dd")</td>
                         <td>@huacales.NombreCliente</td>
                         <td>@huacales.Cantidad</td>
-                        <td>@huacales.Precio</td>
+                        <td>RD$@Math.Round(huacales.Precio,2)</td>
                         <td>
                             <button class="bi bi-pencil-square btn-primary me-2"
                                 @onclick="()=>Editar(huacales.IdEntrada)">
-                            </button>
-                            <button class="bi bi-trash btn-danger"
-                            @onclick="()=>Eliminar(huacales.IdEntrada)">
-
                             </button>
                         </td>
                     </tr>
@@ -82,15 +98,12 @@
             </tbody>
         </table>
         </div>
-    
+
     <div class="card-footer text-end">
-        <span class="me-2">Cantidad: @ListaHuacales.Count()</span>
-        <span class="me-2">Total: @ListaHuacales.Sum(s=>s.Precio)</span>
+        <span class="me-2">Cantidad: @ListaHuacales.Sum(s=>s.Cantidad)</span>
+        <span class="me-2">Importe: @Math.Round(ListaHuacales.Sum(s=>s.Precio),2)</span>
     </div>
 </div>
-
-  
-
 
 
 @code {
@@ -98,7 +111,13 @@
     public string Filtro { get; set; } = string.Empty;
     public string ValorFiltro { get; set; } = string.Empty;
     public EntradasHuacales huacales{ get; set; }
+    public DateTime? FechaDesde { get; set; } = null;
+    public DateTime? FechaHasta { get; set; } = null;
     public int Id{ get; set; }
+    public string Mensaje { get; set; } = string.Empty;
+    public bool MostrarModal { get; set; } = false;
+    private int IdHuacalAEliminar { get; set; }
+
 
     public List<EntradasHuacales> ListaHuacales { get; set; } = new List<EntradasHuacales>();
 
@@ -110,7 +129,7 @@
     public async Task Buscar()
     {
 
-        if(ValorFiltro !=null)
+        if(ValorFiltro.Trim() != "")
         {
             if (Filtro == "IdEntrada")
                 ListaHuacales = await huacalesService.Listar(h => h.IdEntrada.ToString().ToLower().Contains(ValorFiltro.ToLower()));
@@ -120,20 +139,23 @@
                 ListaHuacales = await huacalesService.Listar(h => h.NombreCliente.ToLower().Contains(ValorFiltro.ToLower()));
             else
                 ListaHuacales = await huacalesService.Listar(h => h.IdEntrada > 0);
+        }else if(ValorFiltro== string.Empty)
+        {
+            ListaHuacales = await huacalesService.Listar(h => h.IdEntrada > 0);
         }
     }
+
+    public async Task BuscarPorFecha()
+    {
+        ListaHuacales = await huacalesService.Listar(e =>
+            (!FechaDesde.HasValue || e.Fecha.Date >= FechaDesde.Value.Date) 
+            && (!FechaHasta.HasValue || e.Fecha.Date <= FechaHasta.Value.Date));
+    }
+
     private void Editar(int Id)
     {
         navigationManager.NavigateTo($"/Huacales/Edit/{Id}");
     }
 
-    private async Task Eliminar(int id)
-    {
-        var eliminado = await huacalesService.Eliminar(id);
-        if (eliminado)
-            ListaHuacales = await huacalesService.Listar(p => p.IdEntrada > 0);
-    }
-
+    
 }
-}
-

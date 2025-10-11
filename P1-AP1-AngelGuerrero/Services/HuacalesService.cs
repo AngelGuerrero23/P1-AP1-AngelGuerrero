@@ -1,4 +1,4 @@
-﻿using P1A_P1_AngelGuerrero.Models;
+﻿using P1_AP1_AngelGuerrero.Models;
 using System.Linq.Expressions;
 using P1_AP1_AngelGuerrero.DAL;
 using Microsoft.EntityFrameworkCore;
@@ -12,40 +12,79 @@ public class HuacalesService(IDbContextFactory<Contexto>DbFactory)
     {
         if (!await Existe(huacales.IdEntrada))
         {
-            await Insertar(huacales);
+            return await Insertar(huacales);
         }
         else
         {
-            await Modificar(huacales);
+            return await Modificar(huacales);
         }
-        return false;
+       
     }
 
+    private async Task AfectarExistencia(EntradasHuacalesDetalles[] detalles, TipoOperacion tipoOperacion)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+        foreach (var detalle in detalles)
+        {
+            var huacal = await contexto.TiposHuacales.FindAsync(detalle.TipoId);
+            if (tipoOperacion == TipoOperacion.Resta)
+                huacal.Existencia -= detalle.Cantidad;
+            else
+                huacal.Existencia += detalle.Cantidad;
+            
+        }
+        await contexto.SaveChangesAsync();
+    }
     public async Task<bool>Modificar(EntradasHuacales huacales)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
+        var huacal = await contexto.EntradasHuacales
+            .Include(e => e.EntradasHuacalesDetalles)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(e => e.IdEntrada == huacales.IdEntrada);
+        if (huacal == null) return false;
+
+        await AfectarExistencia(huacal.EntradasHuacalesDetalles.ToArray(),
+            TipoOperacion.Resta);
+
+        contexto.EntradasHuacalesDetalles.RemoveRange(huacal.EntradasHuacalesDetalles);
         contexto.Update(huacales);
+
+        await AfectarExistencia(huacales.EntradasHuacalesDetalles.ToArray(),
+           TipoOperacion.Suma);
+
         return await contexto.SaveChangesAsync()>0;
     }
     public async Task<bool> Insertar(EntradasHuacales huacales)
      {
          await using var contexto = await DbFactory.CreateDbContextAsync();
-         contexto.Add(huacales);
+         contexto.EntradasHuacales.Add(huacales);
+         await AfectarExistencia(huacales.EntradasHuacalesDetalles.ToArray(), TipoOperacion.Suma);
          return await contexto.SaveChangesAsync() > 0;
 
      }
     public async Task<bool>Eliminar(int id)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.EntradasHuacales
-            .Where(o=>o.IdEntrada == id)
-            .ExecuteDeleteAsync()>0;       
+        var huacal = await contexto.EntradasHuacales
+            .Include(o=>o.EntradasHuacalesDetalles)
+            .FirstOrDefaultAsync(c => c.IdEntrada == id);
+        
+        if(huacal == null) return false;
+
+        await AfectarExistencia(huacal.EntradasHuacalesDetalles.ToArray(), TipoOperacion.Resta);
+
+        contexto.EntradasHuacalesDetalles.RemoveRange(huacal.EntradasHuacalesDetalles);
+        contexto.EntradasHuacales.Remove(huacal);
+        var cantidad = await contexto.SaveChangesAsync();
+        return cantidad > 0;
     }
 
     public async Task<EntradasHuacales?>Buscar(int id)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.EntradasHuacales.FirstOrDefaultAsync(o=>o.IdEntrada == id);
+        return await contexto.EntradasHuacales
+            .Include(d=>d.EntradasHuacalesDetalles).FirstOrDefaultAsync(o=>o.IdEntrada == id);
     
     }
 
@@ -64,7 +103,24 @@ public class HuacalesService(IDbContextFactory<Contexto>DbFactory)
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<List<TiposHuacales>>ListarTipo()
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+        return await contexto.TiposHuacales
+            .Where(h=>h.TipoId>0)
+            .AsNoTracking()
+            .ToListAsync();
+
+    }
+
 }
 
-    
+public enum TipoOperacion
+    {
+        Suma =1,
+        Resta =2
+    }
+
+
 

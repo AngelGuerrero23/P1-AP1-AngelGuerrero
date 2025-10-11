@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace P1A_P1_AngelGuerrero.Models;
+namespace P1_AP1_AngelGuerrero.Models;
 
 public class EntradasHuacales
 {
@@ -18,4 +19,10 @@ public class EntradasHuacales
     [Range(0, int.MaxValue, ErrorMessage ="Debe digitar un monto positivo")]
     public double Precio { get; set; }
 
+    [ForeignKey("IdEntrada")]
+    //[InverseProperty("EntradaHuacal")]
+    public virtual ICollection<EntradasHuacalesDetalles> EntradasHuacalesDetalles { get; set; } = new List<EntradasHuacalesDetalles>();
+
 }
+
+

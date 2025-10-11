@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using P1A_P1_AngelGuerrero.Models;
+using P1_AP1_AngelGuerrero.Models;
 
 namespace P1_AP1_AngelGuerrero.DAL;
 
@@ -8,4 +8,38 @@ public class Contexto : DbContext
     public Contexto(DbContextOptions<Contexto> options): base(options){}
 
     public DbSet<EntradasHuacales> EntradasHuacales {  get; set; } 
+
+    public DbSet<TiposHuacales> TiposHuacales { get;set; }
+
+    public DbSet<EntradasHuacalesDetalles> EntradasHuacalesDetalles { get; set; }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TiposHuacales>().HasData(
+            new List<TiposHuacales>()
+            {
+                new()
+                {
+                    TipoId = 1,
+                    Descripcion ="RojoGrande",
+                },
+                new()
+                {
+                    TipoId = 2,
+                    Descripcion ="RojoMediano",
+                },
+                new()
+                {
+                    TipoId = 3,
+                    Descripcion="VerdeGrande",
+                },
+                new()
+                {   
+                    TipoId = 4,
+                    Descripcion="VerdeMediano"
+                }
+             
+            }
+        );
+        base.OnModelCreating(modelBuilder);
+    }
 }

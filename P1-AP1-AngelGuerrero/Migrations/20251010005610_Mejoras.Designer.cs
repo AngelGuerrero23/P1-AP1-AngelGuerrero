@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using P1_AP1_AngelGuerrero.DAL;
 
@@ -10,9 +11,11 @@ using P1_AP1_AngelGuerrero.DAL;
 namespace P1_AP1_AngelGuerrero.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20251010005610_Mejoras")]
+    partial class Mejoras
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -56,12 +59,17 @@ namespace P1_AP1_AngelGuerrero.Migrations
                     b.Property<double>("Precio")
                         .HasColumnType("REAL");
 
+                    b.Property<int>("TipoHuacalTipoId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("TipoId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("DetalleId");
 
                     b.HasIndex("IdEntrada");
+
+                    b.HasIndex("TipoHuacalTipoId");
 
                     b.ToTable("EntradasHuacalesDetalles");
                 });
@@ -112,11 +120,21 @@ namespace P1_AP1_AngelGuerrero.Migrations
 
             modelBuilder.Entity("P1_AP1_AngelGuerrero.Models.EntradasHuacalesDetalles", b =>
                 {
-                    b.HasOne("P1_AP1_AngelGuerrero.Models.EntradasHuacales", null)
+                    b.HasOne("P1_AP1_AngelGuerrero.Models.EntradasHuacales", "EntradaHuacal")
                         .WithMany("EntradasHuacalesDetalles")
                         .HasForeignKey("IdEntrada")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("P1_AP1_AngelGuerrero.Models.TiposHuacales", "TipoHuacal")
+                        .WithMany()
+                        .HasForeignKey("TipoHuacalTipoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EntradaHuacal");
+
+                    b.Navigation("TipoHuacal");
                 });
 
             modelBuilder.Entity("P1_AP1_AngelGuerrero.Models.EntradasHuacales", b =>

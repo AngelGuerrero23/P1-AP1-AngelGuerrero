@@ -25,6 +25,8 @@ public class Program
         //Inyeccion del service
         builder.Services.AddScoped<HuacalesService>();
 
+        builder.Services.AddBlazorBootstrap();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
